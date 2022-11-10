@@ -8,7 +8,7 @@ class PostsEntity extends Equatable {
   final String? image_link;
   final String? product_link;
   final String? description;
-  final int? rating;
+  final double? rating;
 
   const PostsEntity({
     required this.brand,

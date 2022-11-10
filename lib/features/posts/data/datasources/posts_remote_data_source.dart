@@ -19,8 +19,8 @@ class PostsRemoteDataSourceImpl implements PostsRemoteDataSource {
   @override
   Future<List<PostsModel>> getAllPosts() async {
     final response = await client.get(
-      Uri.parse("$BASE_URL/posts/"),
-      headers: {"Content-Type": "application/json"},
+      Uri.parse(BASE_URL),
+      headers: {"Content-Type": "application/json; charset=utf-8"},
     );
 
     if (response.statusCode == 200) {
@@ -29,6 +29,7 @@ class PostsRemoteDataSourceImpl implements PostsRemoteDataSource {
           .map<PostsModel>(
               (jsonPostModel) => PostsModel.fromJson(jsonPostModel))
           .toList();
+      print(postsModels.length);
 
       return postsModels;
     } else {
