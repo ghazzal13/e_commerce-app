@@ -1,26 +1,27 @@
 part of 'posts_bloc.dart';
 
-enum PostsStateStatus {
-  init,
-  showLoading,
-  hideLoading,
-  loadedSuccess,
-  loadedFailed,
+class PostsState extends Equatable {
+  @override
+  List<Object> get props => [];
 }
 
-class PostsState extends Equatable {
-  final PostsStateStatus? status;
-  final PostsEntity? detail;
-  final String? errorMessage;
+class PostInitial extends PostsState {}
 
-  PostsState({this.status, this.detail, this.errorMessage});
+class LoadingPostsState extends PostsState {}
 
-  PostsState copyWith({PostsStateStatus? status, PostsEntity? detail, String? errorMessage}) =>
-      PostsState(
-       status: status ?? this.status,
-       detail: detail ?? this.detail,
-       errorMessage: errorMessage ?? this.errorMessage);
+class LoadedPostsState extends PostsState {
+  final List<PostsEntity> posts;
+
+  LoadedPostsState({required this.posts});
+  @override
+  List<Object> get props => [posts];
+}
+
+class ErrorPostsState extends PostsState {
+  final String message;
+
+  ErrorPostsState({required this.message});
 
   @override
-  List<Object> get props => [status ?? '', detail ?? '', errorMessage ?? ''];
+  List<Object> get props => [message];
 }

@@ -5,11 +5,6 @@ abstract class PostsEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class EventFetchPosts extends PostsEvent {
-  final String id;
+class GetAllPostsEvent extends PostsEvent {}
 
-  EventFetchPosts({required this.id});
-
-  @override
-  List<Object> get props => [id];
-}
+class RefreshPostsEvent extends PostsEvent {}

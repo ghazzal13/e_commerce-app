@@ -1,36 +1,56 @@
-import 'dart:async';
-
+import 'package:dartz/dartz.dart';
+import 'package:e_commerce/core/error/failures.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce/features/posts/domain/entities/posts_entity.dart';
 import 'package:e_commerce/features/posts/domain/usecases/fetch_posts_usecase.dart';
+
+import '../../../../core/strings/failures.dart';
 
 part 'posts_event.dart';
 part 'posts_state.dart';
 
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
-  final FetchPostsUseCase fetchPostsUseCase;
-
+  final FetchPostsUseCase getAllPosts;
   PostsBloc({
-    required FetchPostsUseCase fetchPostsUseCase
-  })  : this.fetchPostsUseCase = fetchPostsUseCase,
-        super(PostsState(status: PostsStateStatus.init));
+    required this.getAllPosts,
+  }) : super(PostInitial()) {
+    on<PostsEvent>((event, emit) async {
+      if (event is GetAllPostsEvent) {
+        emit(LoadingPostsState());
 
-  @override
-  Stream<PostsState> mapEventToState(PostsEvent event) async* {
-    if (event is EventFetchPosts) {
-      yield* _handleFetchPD(event);
-    }
+        final failureOrPosts = await getAllPosts();
+
+        emit(_mapFailureOrPostsToState(failureOrPosts));
+      } else if (event is RefreshPostsEvent) {
+        emit(LoadingPostsState());
+
+        final failureOrPosts = await getAllPosts();
+        emit(_mapFailureOrPostsToState(failureOrPosts));
+      }
+    });
   }
 
-  Stream<PostsState> _handleFetchPD(EventFetchPosts event) async* {
-    yield state.copyWith(status: PostsStateStatus.showLoading);
-    final result = await fetchPostsUseCase(FetchPostsParam(id: event.id));
-    yield state.copyWith(status: PostsStateStatus.hideLoading);
-    yield result.fold(
-      (failure) => state.copyWith(status: PostsStateStatus.loadedFailed, errorMessage: 'Có lỗi xảy ra. Vui lòng thử lại.'),
-      (data) => state.copyWith(status: PostsStateStatus.loadedSuccess, detail: data)
+  PostsState _mapFailureOrPostsToState(
+      Either<Failure, List<PostsEntity>> either) {
+    return either.fold(
+      (failure) => ErrorPostsState(message: _mapFailureToMessage(failure)),
+      (posts) => LoadedPostsState(
+        posts: posts,
+      ),
     );
+  }
+
+  String _mapFailureToMessage(Failure failure) {
+    switch (failure.runtimeType) {
+      case ServerFailure:
+        return SERVER_FAILURE_MESSAGE;
+      case OfflineFailure:
+        return OFFLINE_FAILURE_MESSAGE;
+      case EmptyCacheFailure:
+        return EMPTY_CACHE_FAILURE_MESSAGE;
+      default:
+        return "UnExpected Error, Plase Try Agen Later ";
+    }
   }
 }
